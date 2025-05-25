@@ -14,6 +14,7 @@
     .card {
       background-color: #1e1e1e;
       border: 1px solid #444;
+      position: relative; /* مهم لعزل الرسائل لكل كارت */
     }
     .card-title, .card-text, p {
       color: #f1f1f1;
@@ -21,26 +22,36 @@
     .btn {
       color: #fff;
     }
-    #successMessage {
+    .successMessage {
       display: none;
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background-color: #4caf50;
-      color: white;
-      padding: 10px 20px;
-      border-radius: 5px;
-      z-index: 9999;
+      position: absolute;
+      bottom: 60px; /* فوق زر الإضافة */
+      right: 10px;
+      background: rgba(10, 20, 40, 0.7);
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 12px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+      font-size: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+      z-index: 5;
+    }
+    .successMessage.show {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
     }
   </style>
 </head>
 <body>
   <h1 class="text-center mb-4">سكرابات طبية</h1>
 
-  <!-- إشعار النجاح -->
-  <div id="successMessage">✅ تمت إضافة المنتج للعربة!</div>
-
   <div class="row">
+    <!-- كارت 1 -->
     <div class="col-md-4">
       <div class="card mb-4">
         <img src="assets/products/scrub1.jpg" alt="سكراب 1" class="card-img-top" style="height:200px; object-fit:cover;">
@@ -48,11 +59,13 @@
           <h5 class="card-title">سكراب أزرق كلاسيك</h5>
           <p class="card-text">خامة مريحة ومناسبة للعمل.</p>
           <p>السعر: 450 جنيه</p>
-          <button class="btn btn-success" onclick="addToCart('سكراب أزرق كلاسيك', 450)">إضافة للعربة</button>
+          <button class="btn btn-success" onclick="addToCart('سكراب أزرق كلاسيك', 450, this)">إضافة للعربة</button>
+          <div class="successMessage">✅ تمت الإضافة!</div>
         </div>
       </div>
     </div>
 
+    <!-- كارت 2 -->
     <div class="col-md-4">
       <div class="card mb-4">
         <img src="assets/products/scrub2.jpg" alt="سكراب 2" class="card-img-top" style="height:200px; object-fit:cover;">
@@ -60,7 +73,8 @@
           <h5 class="card-title">سكراب أخضر طبي</h5>
           <p class="card-text">مناسب للأطباء والتمريض.</p>
           <p>السعر: 470 جنيه</p>
-          <button class="btn btn-success" onclick="addToCart('سكراب أخضر طبي', 470)">إضافة للعربة</button>
+          <button class="btn btn-success" onclick="addToCart('سكراب أخضر طبي', 470, this)">إضافة للعربة</button>
+          <div class="successMessage">✅ تمت الإضافة!</div>
         </div>
       </div>
     </div>
@@ -85,15 +99,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    function showSuccessMessage() {
-      const messageBox = document.getElementById('successMessage');
-      messageBox.style.display = 'block';
-      setTimeout(() => {
-        messageBox.style.display = 'none';
-      }, 3000);
-    }
-
-    function addToCart(productName, price) {
+    function addToCart(productName, price, buttonElement) {
       db.collection("cart")
         .add({
           product: productName,
@@ -101,11 +107,16 @@
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         })
         .then(() => {
-          showSuccessMessage();
+          console.log("✅ تمت الإضافة إلى قاعدة البيانات");
+          const messageBox = buttonElement.parentElement.querySelector('.successMessage');
+          messageBox.classList.add('show');
+          setTimeout(() => {
+            messageBox.classList.remove('show');
+          }, 2000);
         })
         .catch(error => {
-          console.error("خطأ أثناء إضافة المنتج:", error);
-          alert("❌ حدث خطأ أثناء إضافة المنتج للعربة.");
+          console.error("❌ خطأ أثناء الإضافة:", error);
+          alert("حدث خطأ أثناء إضافة المنتج للعربة. حاول مرة أخرى.");
         });
     }
   </script>

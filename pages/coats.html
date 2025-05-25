@@ -14,6 +14,7 @@
     .card {
       background-color: #1e1e1e;
       border: 1px solid #444;
+      position: relative;
     }
     .card-title, .card-text, p {
       color: #f1f1f1;
@@ -21,12 +22,36 @@
     .btn {
       color: #fff;
     }
+    .successMessage {
+      display: none;
+      position: absolute;
+      bottom: 60px;
+      right: 10px;
+      background: rgba(10, 20, 40, 0.7);
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 12px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+      font-size: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+      z-index: 5;
+    }
+    .successMessage.show {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
   </style>
 </head>
 <body>
   <h1 class="text-center mb-4">بالطوهات طبية</h1>
 
   <div class="row">
+    <!-- كارت 1 -->
     <div class="col-md-4">
       <div class="card mb-4">
         <img src="assets/products/coat1.jpg" alt="بالطو 1" class="card-img-top" style="height:200px; object-fit:cover;">
@@ -34,11 +59,13 @@
           <h5 class="card-title">بالطو أبيض كلاسيك</h5>
           <p class="card-text">مصنوع من أفضل الأقمشة.</p>
           <p>السعر: 500 جنيه</p>
-          <button class="btn btn-success" onclick="addToCart('بالطو أبيض كلاسيك', 500)">إضافة للعربة</button>
+          <button class="btn btn-success" onclick="addToCart('بالطو أبيض كلاسيك', 500, this)">إضافة للعربة</button>
+          <div class="successMessage">✅ تمت الإضافة!</div>
         </div>
       </div>
     </div>
 
+    <!-- كارت 2 -->
     <div class="col-md-4">
       <div class="card mb-4">
         <img src="assets/products/coat2.jpg" alt="بالطو 2" class="card-img-top" style="height:200px; object-fit:cover;">
@@ -46,7 +73,8 @@
           <h5 class="card-title">بالطو طويل</h5>
           <p class="card-text">للمظهر المهني الأنيق.</p>
           <p>السعر: 530 جنيه</p>
-          <button class="btn btn-success" onclick="addToCart('بالطو طويل', 530)">إضافة للعربة</button>
+          <button class="btn btn-success" onclick="addToCart('بالطو طويل', 530, this)">إضافة للعربة</button>
+          <div class="successMessage">✅ تمت الإضافة!</div>
         </div>
       </div>
     </div>
@@ -71,15 +99,25 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    function addToCart(productName, price) {
+    function addToCart(productName, price, buttonElement) {
       db.collection("cart")
         .add({
           product: productName,
           price: price,
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         })
-        .then(() => { alert("✅ تمت إضافة المنتج للعربة!"); })
-        .catch((error) => { console.error("❌ خطأ في الإضافة:", error); alert("❌ حدث خطأ أثناء إضافة المنتج للعربة."); });
+        .then(() => {
+          console.log("✅ تمت الإضافة إلى قاعدة البيانات");
+          const messageBox = buttonElement.parentElement.querySelector('.successMessage');
+          messageBox.classList.add('show');
+          setTimeout(() => {
+            messageBox.classList.remove('show');
+          }, 2000);
+        })
+        .catch(error => {
+          console.error("❌ خطأ أثناء الإضافة:", error);
+          alert("حدث خطأ أثناء إضافة المنتج للعربة. حاول مرة أخرى.");
+        });
     }
   </script>
 </body>
