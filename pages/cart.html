@@ -76,6 +76,13 @@
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+
+  <!-- EmailJS -->
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@2/dist/email.min.js"></script>
+  <script>
+    emailjs.init('U8LPs6fq9xB7OP3wU');
+  </script>
+
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBhwUGROezGr52_kEmwdVpvHle-6u17cDY",
@@ -194,6 +201,8 @@
         price: item.price
       }));
 
+      const orderDetails = orderItems.map(item => `${item.product} - ${item.price} جنيه`).join('\n');
+
       const order = {
         name,
         address,
@@ -205,6 +214,20 @@
 
       db.collection("orders").add(order)
         .then(() => {
+          // Send Email to fixed email
+          emailjs.send('service_h2uznfq', 'template_8hhcsb7', {
+            name: name,
+            address: address,
+            phone: phone,
+            total: totalPrice,
+            items: orderDetails
+          }).then(() => {
+            console.log('✅ Email sent!');
+          }).catch(error => {
+            console.error('❌ Error sending email:', error);
+          });
+
+          // Clear cart
           const batch = db.batch();
           cartItemsData.forEach(item => {
             const ref = db.collection("cart").doc(item.id);
